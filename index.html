@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Volunteer Log">
+<title>Volunteer Log</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --accent: #f0c040;
+    --accent2: #e07b39;
+    --text: #f0ede6;
+    --muted: #7a7f9a;
+    --morning: #5b8dee;
+    --afternoon: #e07b39;
+    --success: #4caf7d;
+    --danger: #d94f4f;
+    --border: rgba(255,255,255,0.07);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    max-width: 430px;
+    margin: 0 auto;
+    padding-bottom: 60px;
+  }
+
+  .header {
+    padding: 52px 24px 24px;
+    background: linear-gradient(180deg, #12151f 0%, transparent 100%);
+  }
+  .header-label { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .header-title { font-family: 'DM Serif Display', serif; font-size: 30px; color: var(--text); line-height: 1.1; }
+  .header-title span { color: var(--accent); font-style: italic; }
+
+  /* Config */
+  .config-banner {
+    margin: 0 16px 20px; background: linear-gradient(135deg,#1e2235,#252840);
+    border: 1px solid var(--border); border-radius: 16px; padding: 16px 18px; font-size: 13px; color: var(--muted); line-height: 1.5;
+  }
+  .config-banner strong { color: var(--accent); display: block; margin-bottom: 4px; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .config-banner input {
+    width: 100%; margin-top: 10px; background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 14px;
+    color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none;
+  }
+  .config-banner input:focus { border-color: var(--accent); }
+  .config-save-btn {
+    width: 100%; margin-top: 10px; background: var(--accent); color: #0f1117;
+    border: none; border-radius: 10px; padding: 10px;
+    font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 13px; cursor: pointer;
+  }
+
+  /* Date Selector */
+  .date-selector {
+    margin: 0 16px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .date-selector-left { flex: 1; }
+  .date-selector-label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .date-selector-value { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--text); }
+  .date-selector-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .date-today-badge {
+    font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+    background: rgba(240,192,64,0.15); color: var(--accent);
+    border: 1px solid rgba(240,192,64,0.3);
+    border-radius: 8px; padding: 3px 8px; font-weight: 600;
+    white-space: nowrap;
+  }
+  .date-picker-wrapper { position: relative; }
+  .date-pick-btn {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 8px 14px; color: var(--muted);
+    font-family: 'DM Sans', sans-serif; font-size: 12px; cursor: pointer;
+    white-space: nowrap; display: flex; align-items: center; gap: 6px;
+  }
+  .date-pick-btn:active { opacity: 0.7; }
+  /* Hidden native date input overlaid on button */
+  .date-input-hidden {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
+    width: 100%; height: 100%;
+  }
+
+  /* Today status */
+  .today-status {
+    margin: 0 16px 16px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 16px; padding: 14px 16px;
+  }
+  .today-status-label { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+  .today-pills { display: flex; gap: 10px; }
+  .today-pill {
+    flex: 1; border-radius: 12px; padding: 10px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 13px; font-weight: 500; border: none; background: none;
+  }
+  .today-pill.morning-pill { background: rgba(91,141,238,0.15); color: #8fb4ff; border: 1px solid rgba(91,141,238,0.25); }
+  .today-pill.afternoon-pill { background: rgba(224,123,57,0.15); color: #f0a060; border: 1px solid rgba(224,123,57,0.25); }
+  .today-pill .pill-check { font-size: 16px; }
+  .today-pill.logged { opacity: 1; }
+  .today-pill.not-logged { opacity: 0.45; }
+
+  /* Log Buttons */
+  .log-section { padding: 0 16px; margin-bottom: 20px; }
+  .log-section-label { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; padding-left: 4px; }
+  .log-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .log-btn {
+    border: none; border-radius: 20px; padding: 28px 20px;
+    cursor: pointer; position: relative; overflow: hidden;
+    transition: transform 0.15s, opacity 0.15s;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .log-btn:active { transform: scale(0.95); }
+  .log-btn.morning { background: linear-gradient(145deg,#2a3f6e,#1e2d52); color: #8fb4ff; border: 1px solid rgba(91,141,238,0.3); }
+  .log-btn.afternoon { background: linear-gradient(145deg,#5c2f14,#3d2010); color: #f0a060; border: 1px solid rgba(224,123,57,0.3); }
+  .log-btn .btn-icon { font-size: 32px; }
+  .log-btn .btn-label { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; opacity: 0.8; }
+  .log-btn .btn-amount { font-family: 'DM Sans', sans-serif; font-size: 11px; opacity: 0.5; margin-top: -4px; }
+
+  /* Recent Entries */
+  .recent-section { padding: 0 16px; margin-bottom: 20px; }
+  .recent-label { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; padding-left: 4px; }
+  .recent-entry {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 14px 16px; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .recent-date { flex: 1; }
+  .recent-date-main { font-size: 14px; font-weight: 500; color: var(--text); }
+  .recent-date-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .recent-toggles { display: flex; gap: 8px; }
+  .toggle-btn {
+    border: none; border-radius: 8px; padding: 6px 10px;
+    font-size: 11px; font-weight: 600; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; transition: opacity 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .toggle-btn.morning-toggle { background: rgba(91,141,238,0.2); color: #8fb4ff; border: 1px solid rgba(91,141,238,0.3); }
+  .toggle-btn.afternoon-toggle { background: rgba(224,123,57,0.2); color: #f0a060; border: 1px solid rgba(224,123,57,0.3); }
+  .toggle-btn.on { opacity: 1; }
+  .toggle-btn.off { opacity: 0.35; }
+  .recent-amount { font-family: 'DM Serif Display', serif; font-size: 16px; color: var(--accent); min-width: 40px; text-align: right; }
+
+  /* Confirm Dialog */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  }
+  .overlay.show { opacity: 1; pointer-events: all; }
+  .dialog {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 24px; padding: 28px 24px; max-width: 320px; width: 90%;
+    transform: scale(0.9); transition: transform 0.2s;
+  }
+  .overlay.show .dialog { transform: scale(1); }
+  .dialog-icon { font-size: 36px; margin-bottom: 12px; }
+  .dialog-title { font-family: 'DM Serif Display', serif; font-size: 22px; margin-bottom: 8px; }
+  .dialog-msg { font-size: 14px; color: var(--muted); line-height: 1.5; margin-bottom: 20px; }
+  .dialog-btns { display: flex; gap: 10px; }
+  .dialog-btn {
+    flex: 1; border: none; border-radius: 12px; padding: 12px;
+    font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 14px; cursor: pointer;
+  }
+  .dialog-btn.cancel { background: var(--surface2); color: var(--muted); }
+  .dialog-btn.confirm { background: var(--accent); color: #0f1117; }
+
+  /* Summary */
+  .summary-section { padding: 0 16px; }
+  .summary-label { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; padding-left: 4px; }
+  .month-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 20px; margin-bottom: 12px; position: relative; overflow: hidden;
+  }
+  .month-card::before { content:''; position:absolute; top:0;left:0;right:0; height:2px; background:linear-gradient(90deg,var(--morning),var(--afternoon)); opacity:0.5; }
+  .month-card.current::before { opacity:1; background:linear-gradient(90deg,var(--accent),var(--accent2)); }
+  .month-card-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; }
+  .month-name { font-family:'DM Serif Display',serif; font-size:22px; color:var(--text); }
+  .month-badge { font-size:10px; letter-spacing:0.1em; text-transform:uppercase; background:var(--accent); color:#0f1117; border-radius:8px; padding:3px 8px; font-weight:600; }
+  .month-stats { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .stat-box { background:var(--surface2); border-radius:14px; padding:14px; }
+  .stat-value { font-family:'DM Serif Display',serif; font-size:28px; color:var(--text); line-height:1; }
+  .stat-value.amount { color:var(--accent); font-size:24px; }
+  .stat-label { font-size:11px; color:var(--muted); margin-top:4px; }
+
+  .loading { text-align:center; padding:40px; color:var(--muted); font-size:14px; }
+  .spinner { width:24px;height:24px;border:2px solid var(--surface2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 12px; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+
+  .refresh-btn {
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    width:calc(100% - 32px);margin:0 16px 20px;background:var(--surface);
+    border:1px solid var(--border);border-radius:14px;padding:14px;
+    color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .refresh-btn:active{opacity:0.7}
+  .divider { height:1px;background:var(--border);margin:8px 16px 20px; }
+
+  .toast {
+    position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);
+    background:var(--success);color:#fff;border-radius:14px;padding:12px 24px;
+    font-size:14px;font-weight:500;transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    z-index:999;white-space:nowrap;
+  }
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  .toast.error{background:var(--danger)}
+  .toast.warning{background:#b07d20}
+
+  .change-url-btn {
+    display:block;text-align:center;padding:10px;color:var(--muted);
+    font-size:12px;cursor:pointer;margin-bottom:10px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-label">Volunteer Tracker</div>
+  <div class="header-title">Log your <span>sessions</span></div>
+</div>
+
+<!-- Config -->
+<div class="config-banner" id="configSection">
+  <strong>⚙ Setup Required</strong>
+  Paste your Google Apps Script Web App URL below, then tap Save.
+  <input type="url" id="scriptUrl" placeholder="https://script.google.com/macros/s/.../exec" />
+  <button class="config-save-btn" onclick="saveUrl()">Save URL</button>
+</div>
+
+<!-- Date Selector -->
+<div class="date-selector" id="dateSelectorSection" style="display:none">
+  <div class="date-selector-left">
+    <div class="date-selector-label">Logging for</div>
+    <div class="date-selector-value" id="selectedDateDisplay">—</div>
+    <div class="date-selector-sub" id="selectedDateSub"></div>
+  </div>
+  <div id="todayBadge" class="date-today-badge">Today</div>
+  <div class="date-picker-wrapper">
+    <div class="date-pick-btn">📅 Change</div>
+    <input type="date" class="date-input-hidden" id="datePicker" onchange="onDateChange(this.value)" />
+  </div>
+</div>
+
+<!-- Today status -->
+<div class="today-status" id="todayStatus" style="display:none">
+  <div class="today-status-label" id="statusLabel">Selected date log</div>
+  <div class="today-pills">
+    <div class="today-pill morning-pill not-logged" id="todayMorningPill">
+      <span>🌅 Morning</span><span class="pill-check" id="morningCheck">✗</span>
+    </div>
+    <div class="today-pill afternoon-pill not-logged" id="todayAfternoonPill">
+      <span>🌇 Afternoon</span><span class="pill-check" id="afternoonCheck">✗</span>
+    </div>
+  </div>
+</div>
+
+<!-- Log Buttons -->
+<div class="log-section">
+  <div class="log-section-label">Tap to log</div>
+  <div class="log-buttons">
+    <button class="log-btn morning" onclick="logSession('morning')">
+      <span class="btn-icon">🌅</span>
+      <span style="font-family:'DM Serif Display',serif;font-size:20px;">Morning</span>
+      <span class="btn-label">First session</span>
+      <span class="btn-amount">+ ₹5.5</span>
+    </button>
+    <button class="log-btn afternoon" onclick="logSession('afternoon')">
+      <span class="btn-icon">🌇</span>
+      <span style="font-family:'DM Serif Display',serif;font-size:20px;">Afternoon</span>
+      <span class="btn-label">Second session</span>
+      <span class="btn-amount">+ ₹5.5</span>
+    </button>
+  </div>
+</div>
+
+<!-- Recent Entries -->
+<div class="recent-section" id="recentSection" style="display:none">
+  <div class="recent-label">Recent entries — tap to correct</div>
+  <div id="recentContainer"></div>
+</div>
+
+<button class="refresh-btn" onclick="loadAll()">🔄 Refresh</button>
+<div class="divider"></div>
+
+<!-- Summary -->
+<div class="summary-section">
+  <div class="summary-label">Monthly Summary</div>
+  <div id="summaryContainer"><div class="loading"><div class="spinner"></div>Set up your Script URL above</div></div>
+</div>
+
+<span class="change-url-btn" onclick="changeUrl()">⚙ Change Script URL</span>
+
+<!-- Confirm Dialog -->
+<div class="overlay" id="overlay">
+  <div class="dialog">
+    <div class="dialog-icon" id="dialogIcon">⚠️</div>
+    <div class="dialog-title" id="dialogTitle">Already logged</div>
+    <div class="dialog-msg" id="dialogMsg">You already logged this session.</div>
+    <div class="dialog-btns">
+      <button class="dialog-btn cancel" onclick="closeDialog()">Cancel</button>
+      <button class="dialog-btn confirm" id="dialogConfirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const STORAGE_KEY = 'volunteer_script_url';
+  let scriptUrl = localStorage.getItem(STORAGE_KEY) || '';
+
+  // Selected date — defaults to today
+  const todayDate = new Date();
+  let selectedDate = new Date(todayDate);
+  let selectedMorning = 0, selectedAfternoon = 0;
+
+  // Set date picker max to today
+  const datePickerEl = document.getElementById('datePicker');
+  datePickerEl.max = toInputValue(todayDate);
+  datePickerEl.value = toInputValue(todayDate);
+
+  function toInputValue(d) {
+    return d.getFullYear() + '-' +
+      String(d.getMonth()+1).padStart(2,'0') + '-' +
+      String(d.getDate()).padStart(2,'0');
+  }
+
+  function fromInputValue(str) {
+    const [y, m, d] = str.split('-').map(Number);
+    return new Date(y, m-1, d);
+  }
+
+  function isToday(d) {
+    return d.getDate() === todayDate.getDate() &&
+           d.getMonth() === todayDate.getMonth() &&
+           d.getFullYear() === todayDate.getFullYear();
+  }
+
+  function formatDate(d) {
+    return String(d.getDate()).padStart(2,'0') + '/' +
+           String(d.getMonth()+1).padStart(2,'0') + '/' +
+           String(d.getFullYear()).slice(2);
+  }
+
+  function updateDateDisplay() {
+    const display = document.getElementById('selectedDateDisplay');
+    const sub = document.getElementById('selectedDateSub');
+    const badge = document.getElementById('todayBadge');
+    const label = document.getElementById('statusLabel');
+
+    const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+    display.textContent = selectedDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+    sub.textContent = selectedDate.toLocaleDateString('en-IN', { weekday: 'long' });
+
+    if (isToday(selectedDate)) {
+      badge.style.display = 'block';
+      label.textContent = "Today's log";
+    } else {
+      badge.style.display = 'none';
+      label.textContent = `Log for ${selectedDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`;
+    }
+  }
+
+  function onDateChange(val) {
+    if (!val) return;
+    selectedDate = fromInputValue(val);
+    updateDateDisplay();
+    loadSelectedDateStatus();
+  }
+
+  function updateConfigVisibility() {
+    const banner = document.getElementById('configSection');
+    if (scriptUrl) {
+      banner.style.display = 'none';
+      document.getElementById('dateSelectorSection').style.display = 'flex';
+      document.getElementById('todayStatus').style.display = 'block';
+      updateDateDisplay();
+      loadAll();
+    } else {
+      banner.style.display = 'block';
+    }
+  }
+
+  function saveUrl() {
+    const input = document.getElementById('scriptUrl').value.trim();
+    if (!input.startsWith('https://script.google.com')) {
+      showToast('Please enter a valid Script URL', 'error'); return;
+    }
+    scriptUrl = input;
+    localStorage.setItem(STORAGE_KEY, scriptUrl);
+    updateConfigVisibility();
+  }
+
+  function changeUrl() {
+    localStorage.removeItem(STORAGE_KEY);
+    scriptUrl = '';
+    document.getElementById('configSection').style.display = 'block';
+    document.getElementById('dateSelectorSection').style.display = 'none';
+    document.getElementById('scriptUrl').value = '';
+  }
+
+  async function loadAll() {
+    if (!scriptUrl) return;
+    loadSelectedDateStatus();
+    loadRecent();
+    loadSummary();
+  }
+
+  async function loadSelectedDateStatus() {
+    try {
+      const res = await fetch(`${scriptUrl}?action=today&date=${formatDate(selectedDate)}`);
+      const data = await res.json();
+      selectedMorning = data.morning || 0;
+      selectedAfternoon = data.afternoon || 0;
+      updateTodayUI();
+    } catch(e) {}
+  }
+
+  function updateTodayUI() {
+    const mp = document.getElementById('todayMorningPill');
+    const ap = document.getElementById('todayAfternoonPill');
+    document.getElementById('morningCheck').textContent = selectedMorning ? '✓' : '✗';
+    document.getElementById('afternoonCheck').textContent = selectedAfternoon ? '✓' : '✗';
+    mp.className = `today-pill morning-pill ${selectedMorning ? 'logged' : 'not-logged'}`;
+    ap.className = `today-pill afternoon-pill ${selectedAfternoon ? 'logged' : 'not-logged'}`;
+  }
+
+  async function logSession(type) {
+    if (!scriptUrl) { showToast('Please set your Script URL first', 'error'); return; }
+
+    const alreadyLogged = type === 'morning' ? selectedMorning : selectedAfternoon;
+    const dateStr = formatDate(selectedDate);
+    const isTodaySelected = isToday(selectedDate);
+    const dateLabel = isTodaySelected ? 'today' : selectedDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+
+    if (alreadyLogged) {
+      showDialog(
+        '⚠️',
+        'Already logged!',
+        `The ${type} session for ${dateLabel} is already logged. Log it again?`,
+        () => doLog(type, dateStr)
+      );
+      return;
+    }
+
+    doLog(type, dateStr);
+  }
+
+  async function doLog(type, dateStr) {
+    btnDisable(true);
+    try {
+      const res = await fetch(`${scriptUrl}?action=log&type=${type}&date=${dateStr}`);
+      const data = await res.json();
+      if (data.success) {
+        if (type === 'morning') selectedMorning = 1; else selectedAfternoon = 1;
+        updateTodayUI();
+        showToast(`${type === 'morning' ? '🌅 Morning' : '🌇 Afternoon'} logged for ${dateStr}!`);
+        setTimeout(loadAll, 1500);
+      } else {
+        showToast('Error logging session', 'error');
+      }
+    } catch(e) {
+      showToast('Connection error. Try again.', 'error');
+    }
+    btnDisable(false);
+  }
+
+  function btnDisable(state) {
+    document.querySelectorAll('.log-btn').forEach(b => b.style.opacity = state ? '0.5' : '1');
+  }
+
+  async function loadRecent() {
+    try {
+      const res = await fetch(`${scriptUrl}?action=recent`);
+      const data = await res.json();
+      renderRecent(data);
+      document.getElementById('recentSection').style.display = 'block';
+    } catch(e) {}
+  }
+
+  function renderRecent(entries) {
+    const container = document.getElementById('recentContainer');
+    if (!entries || entries.length === 0) { container.innerHTML = ''; return; }
+    container.innerHTML = entries.map(e => `
+      <div class="recent-entry">
+        <div class="recent-date">
+          <div class="recent-date-main">${e.displayDate}</div>
+          <div class="recent-date-sub">${e.date}</div>
+        </div>
+        <div class="recent-toggles">
+          <button class="toggle-btn morning-toggle ${e.morning ? 'on' : 'off'}"
+            onclick="toggleEntry('${e.date}', 'morning', ${e.morning})">
+            🌅 ${e.morning ? 'ON' : 'OFF'}
+          </button>
+          <button class="toggle-btn afternoon-toggle ${e.afternoon ? 'on' : 'off'}"
+            onclick="toggleEntry('${e.date}', 'afternoon', ${e.afternoon})">
+            🌇 ${e.afternoon ? 'ON' : 'OFF'}
+          </button>
+        </div>
+        <div class="recent-amount">₹${e.amount}</div>
+      </div>
+    `).join('');
+  }
+
+  async function toggleEntry(date, type, currentVal) {
+    const newVal = currentVal ? 0 : 1;
+    const session = type === 'morning' ? '🌅 Morning' : '🌇 Afternoon';
+    showDialog(
+      newVal ? '✅' : '🗑️',
+      `${newVal ? 'Add' : 'Remove'} session?`,
+      `Are you sure you want to ${newVal ? 'add' : 'remove'} the ${session} session for ${date}?`,
+      async () => {
+        try {
+          const res = await fetch(`${scriptUrl}?action=edit&type=${type}&date=${date}&value=${newVal}`);
+          const data = await res.json();
+          if (data.success) {
+            showToast('Entry updated!');
+            setTimeout(loadAll, 1000);
+          } else {
+            showToast('Could not update entry', 'error');
+          }
+        } catch(e) {
+          showToast('Connection error', 'error');
+        }
+      }
+    );
+  }
+
+  async function loadSummary() {
+    if (!scriptUrl) return;
+    const container = document.getElementById('summaryContainer');
+    container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+    try {
+      const res = await fetch(`${scriptUrl}?action=summary`);
+      const data = await res.json();
+      renderSummary(data);
+    } catch(e) {
+      container.innerHTML = '<div class="loading">Could not load. Tap Refresh.</div>';
+    }
+  }
+
+  function renderSummary(data) {
+    const container = document.getElementById('summaryContainer');
+    if (!data || data.length === 0) { container.innerHTML = '<div class="loading">No data yet.</div>'; return; }
+    const currentMonth = todayDate.toLocaleString('en-IN', { month: 'long', year: 'numeric' });
+    container.innerHTML = data.map(m => `
+      <div class="month-card ${m.month === currentMonth ? 'current' : ''}">
+        <div class="month-card-header">
+          <div class="month-name">${m.month}</div>
+          ${m.month === currentMonth ? '<div class="month-badge">This Month</div>' : ''}
+        </div>
+        <div class="month-stats">
+          <div class="stat-box"><div class="stat-value">${m.sessions}</div><div class="stat-label">Sessions attended</div></div>
+          <div class="stat-box"><div class="stat-value amount">₹${m.amount}</div><div class="stat-label">Amount earned</div></div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function showDialog(icon, title, msg, onConfirm) {
+    document.getElementById('dialogIcon').textContent = icon;
+    document.getElementById('dialogTitle').textContent = title;
+    document.getElementById('dialogMsg').textContent = msg;
+    document.getElementById('dialogConfirm').onclick = () => { closeDialog(); onConfirm(); };
+    document.getElementById('overlay').classList.add('show');
+  }
+  function closeDialog() { document.getElementById('overlay').classList.remove('show'); }
+  document.getElementById('overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeDialog(); });
+
+  function showToast(msg, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.className = `toast ${type}`;
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  updateConfigVisibility();
+</script>
+</body>
+</html>

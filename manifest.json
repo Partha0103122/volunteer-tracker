@@ -1,0 +1,15 @@
+{
+  "name": "Volunteer Log",
+  "short_name": "Volunteer",
+  "start_url": "/volunteer-tracker/",
+  "display": "standalone",
+  "background_color": "#0f1117",
+  "theme_color": "#0f1117",
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/nickmccarthy/python-dateutil/master/dateutil/zoneinfo/dateutil-zoneinfo.tar.gz",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

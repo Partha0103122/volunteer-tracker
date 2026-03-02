@@ -67,35 +67,36 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 16px;
-    padding: 14px 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    padding: 16px;
   }
-  .date-selector-left { flex: 1; }
-  .date-selector-label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
-  .date-selector-value { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--text); }
-  .date-selector-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .date-selector-top {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
+  }
+  .date-selector-label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
   .date-today-badge {
     font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
     background: rgba(240,192,64,0.15); color: var(--accent);
     border: 1px solid rgba(240,192,64,0.3);
     border-radius: 8px; padding: 3px 8px; font-weight: 600;
-    white-space: nowrap;
   }
-  .date-picker-wrapper { position: relative; }
-  .date-pick-btn {
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 10px; padding: 8px 14px; color: var(--muted);
-    font-family: 'DM Sans', sans-serif; font-size: 12px; cursor: pointer;
-    white-space: nowrap; display: flex; align-items: center; gap: 6px;
+  .date-selector-value {
+    font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--text); margin-bottom: 12px;
   }
-  .date-pick-btn:active { opacity: 0.7; }
-  /* Hidden native date input overlaid on button */
-  .date-input-hidden {
-    position: absolute; inset: 0; opacity: 0; cursor: pointer;
-    width: 100%; height: 100%;
+  /* Visible native date input */
+  .date-input-visible {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    -webkit-appearance: none;
+    color-scheme: dark;
   }
+  .date-input-visible:focus { border-color: var(--accent); }
 
   /* Today status */
   .today-status {
@@ -139,14 +140,14 @@
   .recent-entry {
     background: var(--surface); border: 1px solid var(--border);
     border-radius: 16px; padding: 14px 16px; margin-bottom: 10px;
-    display: flex; align-items: center; gap: 12px;
+    display: flex; align-items: center; gap: 10px;
   }
-  .recent-date { flex: 1; }
+  .recent-date { flex: 1; min-width: 0; }
   .recent-date-main { font-size: 14px; font-weight: 500; color: var(--text); }
   .recent-date-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .recent-toggles { display: flex; gap: 8px; }
+  .recent-toggles { display: flex; gap: 6px; }
   .toggle-btn {
-    border: none; border-radius: 8px; padding: 6px 10px;
+    border: none; border-radius: 8px; padding: 6px 8px;
     font-size: 11px; font-weight: 600; cursor: pointer;
     font-family: 'DM Sans', sans-serif; transition: opacity 0.2s;
     -webkit-tap-highlight-color: transparent;
@@ -155,7 +156,7 @@
   .toggle-btn.afternoon-toggle { background: rgba(224,123,57,0.2); color: #f0a060; border: 1px solid rgba(224,123,57,0.3); }
   .toggle-btn.on { opacity: 1; }
   .toggle-btn.off { opacity: 0.35; }
-  .recent-amount { font-family: 'DM Serif Display', serif; font-size: 16px; color: var(--accent); min-width: 40px; text-align: right; }
+  .recent-amount { font-family: 'DM Serif Display', serif; font-size: 16px; color: var(--accent); min-width: 36px; text-align: right; }
 
   /* Confirm Dialog */
   .overlay {
@@ -180,6 +181,7 @@
   }
   .dialog-btn.cancel { background: var(--surface2); color: var(--muted); }
   .dialog-btn.confirm { background: var(--accent); color: #0f1117; }
+  .dialog-btn.danger { background: var(--danger); color: #fff; }
 
   /* Summary */
   .summary-section { padding: 0 16px; }
@@ -221,7 +223,6 @@
   }
   .toast.show{transform:translateX(-50%) translateY(0)}
   .toast.error{background:var(--danger)}
-  .toast.warning{background:#b07d20}
 
   .change-url-btn {
     display:block;text-align:center;padding:10px;color:var(--muted);
@@ -246,21 +247,17 @@
 
 <!-- Date Selector -->
 <div class="date-selector" id="dateSelectorSection" style="display:none">
-  <div class="date-selector-left">
+  <div class="date-selector-top">
     <div class="date-selector-label">Logging for</div>
-    <div class="date-selector-value" id="selectedDateDisplay">—</div>
-    <div class="date-selector-sub" id="selectedDateSub"></div>
+    <div id="todayBadge" class="date-today-badge">Today</div>
   </div>
-  <div id="todayBadge" class="date-today-badge">Today</div>
-  <div class="date-picker-wrapper">
-    <div class="date-pick-btn">📅 Change</div>
-    <input type="date" class="date-input-hidden" id="datePicker" onchange="onDateChange(this.value)" />
-  </div>
+  <div class="date-selector-value" id="selectedDateDisplay">—</div>
+  <input type="date" id="datePicker" class="date-input-visible" onchange="onDateChange(this.value)" />
 </div>
 
 <!-- Today status -->
 <div class="today-status" id="todayStatus" style="display:none">
-  <div class="today-status-label" id="statusLabel">Selected date log</div>
+  <div class="today-status-label" id="statusLabel">Today's log</div>
   <div class="today-pills">
     <div class="today-pill morning-pill not-logged" id="todayMorningPill">
       <span>🌅 Morning</span><span class="pill-check" id="morningCheck">✗</span>
@@ -311,8 +308,8 @@
 <div class="overlay" id="overlay">
   <div class="dialog">
     <div class="dialog-icon" id="dialogIcon">⚠️</div>
-    <div class="dialog-title" id="dialogTitle">Already logged</div>
-    <div class="dialog-msg" id="dialogMsg">You already logged this session.</div>
+    <div class="dialog-title" id="dialogTitle">Confirm</div>
+    <div class="dialog-msg" id="dialogMsg">Are you sure?</div>
     <div class="dialog-btns">
       <button class="dialog-btn cancel" onclick="closeDialog()">Cancel</button>
       <button class="dialog-btn confirm" id="dialogConfirm">Confirm</button>
@@ -326,15 +323,9 @@
   const STORAGE_KEY = 'volunteer_script_url';
   let scriptUrl = localStorage.getItem(STORAGE_KEY) || '';
 
-  // Selected date — defaults to today
   const todayDate = new Date();
   let selectedDate = new Date(todayDate);
   let selectedMorning = 0, selectedAfternoon = 0;
-
-  // Set date picker max to today
-  const datePickerEl = document.getElementById('datePicker');
-  datePickerEl.max = toInputValue(todayDate);
-  datePickerEl.value = toInputValue(todayDate);
 
   function toInputValue(d) {
     return d.getFullYear() + '-' +
@@ -359,23 +350,18 @@
            String(d.getFullYear()).slice(2);
   }
 
+  // Init date picker
+  const datePickerEl = document.getElementById('datePicker');
+  datePickerEl.max = toInputValue(todayDate);
+  datePickerEl.value = toInputValue(todayDate);
+
   function updateDateDisplay() {
     const display = document.getElementById('selectedDateDisplay');
-    const sub = document.getElementById('selectedDateSub');
     const badge = document.getElementById('todayBadge');
     const label = document.getElementById('statusLabel');
-
-    const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-    display.textContent = selectedDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
-    sub.textContent = selectedDate.toLocaleDateString('en-IN', { weekday: 'long' });
-
-    if (isToday(selectedDate)) {
-      badge.style.display = 'block';
-      label.textContent = "Today's log";
-    } else {
-      badge.style.display = 'none';
-      label.textContent = `Log for ${selectedDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`;
-    }
+    display.textContent = selectedDate.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    badge.style.display = isToday(selectedDate) ? 'block' : 'none';
+    label.textContent = isToday(selectedDate) ? "Today's log" : `Log for ${selectedDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`;
   }
 
   function onDateChange(val) {
@@ -386,15 +372,14 @@
   }
 
   function updateConfigVisibility() {
-    const banner = document.getElementById('configSection');
     if (scriptUrl) {
-      banner.style.display = 'none';
-      document.getElementById('dateSelectorSection').style.display = 'flex';
+      document.getElementById('configSection').style.display = 'none';
+      document.getElementById('dateSelectorSection').style.display = 'block';
       document.getElementById('todayStatus').style.display = 'block';
       updateDateDisplay();
       loadAll();
     } else {
-      banner.style.display = 'block';
+      document.getElementById('configSection').style.display = 'block';
     }
   }
 
@@ -413,6 +398,7 @@
     scriptUrl = '';
     document.getElementById('configSection').style.display = 'block';
     document.getElementById('dateSelectorSection').style.display = 'none';
+    document.getElementById('todayStatus').style.display = 'none';
     document.getElementById('scriptUrl').value = '';
   }
 
@@ -434,32 +420,24 @@
   }
 
   function updateTodayUI() {
-    const mp = document.getElementById('todayMorningPill');
-    const ap = document.getElementById('todayAfternoonPill');
     document.getElementById('morningCheck').textContent = selectedMorning ? '✓' : '✗';
     document.getElementById('afternoonCheck').textContent = selectedAfternoon ? '✓' : '✗';
-    mp.className = `today-pill morning-pill ${selectedMorning ? 'logged' : 'not-logged'}`;
-    ap.className = `today-pill afternoon-pill ${selectedAfternoon ? 'logged' : 'not-logged'}`;
+    document.getElementById('todayMorningPill').className = `today-pill morning-pill ${selectedMorning ? 'logged' : 'not-logged'}`;
+    document.getElementById('todayAfternoonPill').className = `today-pill afternoon-pill ${selectedAfternoon ? 'logged' : 'not-logged'}`;
   }
 
   async function logSession(type) {
     if (!scriptUrl) { showToast('Please set your Script URL first', 'error'); return; }
-
     const alreadyLogged = type === 'morning' ? selectedMorning : selectedAfternoon;
     const dateStr = formatDate(selectedDate);
-    const isTodaySelected = isToday(selectedDate);
-    const dateLabel = isTodaySelected ? 'today' : selectedDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+    const dateLabel = isToday(selectedDate) ? 'today' : selectedDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 
     if (alreadyLogged) {
-      showDialog(
-        '⚠️',
-        'Already logged!',
+      showDialog('⚠️', 'Already logged!',
         `The ${type} session for ${dateLabel} is already logged. Log it again?`,
-        () => doLog(type, dateStr)
-      );
+        () => doLog(type, dateStr));
       return;
     }
-
     doLog(type, dateStr);
   }
 
@@ -476,9 +454,7 @@
       } else {
         showToast('Error logging session', 'error');
       }
-    } catch(e) {
-      showToast('Connection error. Try again.', 'error');
-    }
+    } catch(e) { showToast('Connection error. Try again.', 'error'); }
     btnDisable(false);
   }
 
@@ -522,10 +498,11 @@
   async function toggleEntry(date, type, currentVal) {
     const newVal = currentVal ? 0 : 1;
     const session = type === 'morning' ? '🌅 Morning' : '🌇 Afternoon';
+    const confirmClass = newVal ? 'confirm' : 'danger';
     showDialog(
       newVal ? '✅' : '🗑️',
       `${newVal ? 'Add' : 'Remove'} session?`,
-      `Are you sure you want to ${newVal ? 'add' : 'remove'} the ${session} session for ${date}?`,
+      `${newVal ? 'Add' : 'Remove'} the ${session} session for ${date}?`,
       async () => {
         try {
           const res = await fetch(`${scriptUrl}?action=edit&type=${type}&date=${date}&value=${newVal}`);
@@ -533,13 +510,10 @@
           if (data.success) {
             showToast('Entry updated!');
             setTimeout(loadAll, 1000);
-          } else {
-            showToast('Could not update entry', 'error');
-          }
-        } catch(e) {
-          showToast('Connection error', 'error');
-        }
-      }
+          } else { showToast('Could not update entry', 'error'); }
+        } catch(e) { showToast('Connection error', 'error'); }
+      },
+      confirmClass
     );
   }
 
@@ -551,9 +525,7 @@
       const res = await fetch(`${scriptUrl}?action=summary`);
       const data = await res.json();
       renderSummary(data);
-    } catch(e) {
-      container.innerHTML = '<div class="loading">Could not load. Tap Refresh.</div>';
-    }
+    } catch(e) { container.innerHTML = '<div class="loading">Could not load. Tap Refresh.</div>'; }
   }
 
   function renderSummary(data) {
@@ -574,11 +546,13 @@
     `).join('');
   }
 
-  function showDialog(icon, title, msg, onConfirm) {
+  function showDialog(icon, title, msg, onConfirm, confirmClass = 'confirm') {
     document.getElementById('dialogIcon').textContent = icon;
     document.getElementById('dialogTitle').textContent = title;
     document.getElementById('dialogMsg').textContent = msg;
-    document.getElementById('dialogConfirm').onclick = () => { closeDialog(); onConfirm(); };
+    const confirmBtn = document.getElementById('dialogConfirm');
+    confirmBtn.className = `dialog-btn ${confirmClass}`;
+    confirmBtn.onclick = () => { closeDialog(); onConfirm(); };
     document.getElementById('overlay').classList.add('show');
   }
   function closeDialog() { document.getElementById('overlay').classList.remove('show'); }
